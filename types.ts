@@ -1,8 +1,7 @@
 
 export interface VideoAnalysis {
   title: string;
-  summary: string;
-  detailedAnalysis: string[];
+  analysisText: string;
 }
 
 export interface ChatMessage {

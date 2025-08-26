@@ -28,6 +28,12 @@
 </head>
   <body class="bg-gray-900 text-gray-100">
     <div id="root"></div>
+    <script>
+      // Polyfill the process object for the browser environment to make process.env.API_KEY accessible.
+      if (typeof globalThis.process === 'undefined') {
+        globalThis.process = { env: {} };
+      }
+    </script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

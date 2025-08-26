@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import AnalyzerView from './components/AnalyzerView';
 import ChatView from './components/ChatView';
+import GeneratorView from './components/GeneratorView';
 import { YouTubeIcon } from './components/icons/YouTubeIcon';
 import { ChatIcon } from './components/icons/ChatIcon';
+import { VideoIcon } from './components/icons/VideoIcon';
 
-type View = 'analyzer' | 'chat';
+type View = 'analyzer' | 'generator' | 'chat';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('analyzer');
@@ -23,7 +25,7 @@ const App: React.FC = () => {
             </h1>
           </div>
           <p className="text-lg text-gray-400">
-            Explore the power of Gemini for video analysis and conversational AI.
+            Explore the power of Gemini for video analysis, generation, and conversational AI.
           </p>
         </header>
 
@@ -38,6 +40,14 @@ const App: React.FC = () => {
               <span>Video Analyzer</span>
             </button>
             <button
+              onClick={() => setActiveView('generator')}
+              className={`${navItemClasses} ${activeView === 'generator' ? activeNavItemClasses : inactiveNavItemClasses}`}
+              aria-current={activeView === 'generator' ? 'page' : undefined}
+            >
+              <VideoIcon className="w-6 h-6" />
+              <span>Video Generator</span>
+            </button>
+            <button
               onClick={() => setActiveView('chat')}
               className={`${navItemClasses} ${activeView === 'chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
               aria-current={activeView === 'chat' ? 'page' : undefined}
@@ -49,8 +59,15 @@ const App: React.FC = () => {
         </nav>
 
         <main className="flex-grow">
-          {activeView === 'analyzer' && <AnalyzerView />}
-          {activeView === 'chat' && <ChatView />}
+          <div className={activeView !== 'analyzer' ? 'hidden' : ''}>
+            <AnalyzerView />
+          </div>
+          <div className={activeView !== 'generator' ? 'hidden' : ''}>
+            <GeneratorView />
+          </div>
+          <div className={activeView !== 'chat' ? 'hidden' : ''}>
+            <ChatView />
+          </div>
         </main>
         
         <footer className="text-center mt-12 text-gray-500 text-sm">

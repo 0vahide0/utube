@@ -1,5 +1,5 @@
 {
-  "name": "Gemini Showcase: Video & Chat",
-  "description": "An application that uses the Gemini API to generate a detailed summary of a YouTube video and also provides a direct chat interface for conversational AI.",
+  "name": "Gemini Showcase: Video Analysis, Generation & Chat",
+  "description": "An application that uses the Gemini API to analyze YouTube videos, generate new videos from prompts, and provide a direct chat interface for conversational AI.",
   "requestFramePermissions": []
 }
