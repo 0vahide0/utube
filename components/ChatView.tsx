@@ -29,14 +29,14 @@ const ChatView: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const history = messages; 
-      const stream = await streamChatResponse('gemini-2.5-flash', history, currentInput);
+      const history = messages;
+      const stream = await streamChatResponse(history, currentInput);
       
       setMessages(prev => [...prev, { role: 'model', content: '' }]);
       
       let fullResponse = '';
       for await (const chunk of stream) {
-        fullResponse += chunk.text;
+        fullResponse += chunk.text();
         setMessages(prev => {
           const newMessages = [...prev];
           newMessages[newMessages.length - 1].content = fullResponse;

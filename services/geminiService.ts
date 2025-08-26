@@ -1,18 +1,20 @@
-import { GoogleGenAI, Type, Chat } from "@google/genai";
+import * as genai from "@google/genai";
 import type { VideoAnalysis, ChatMessage } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set.");
+  throw new Error("VITE_API_KEY environment variable not set. Please create a .env file and add your key.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+const genAI = new genai.GoogleGenerativeAI(API_KEY);
 
 export const analyzeYouTubeVideo = async (url: string): Promise<VideoAnalysis> => {
   if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
     throw new Error('Invalid YouTube URL provided.');
   }
+
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro", tools: [{'googleSearch': {}}]});
 
   const prompt = `You are an expert video analyst. Use Google Search to find information about the YouTube video at this URL: ${url}. Based on your search results, analyze the video's content.
 
@@ -27,20 +29,13 @@ Your entire response MUST be a single, valid JSON object, without any markdown f
 }`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        tools: [{googleSearch: {}}],
-      },
-    });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonText = response.text().trim();
 
-    const jsonText = response.text.trim();
-    // Gemini may sometimes wrap the JSON in ```json ... ```, so we need to clean it.
     const cleanedJsonText = jsonText.replace(/^```json\s*|```$/g, '');
     const parsedData = JSON.parse(cleanedJsonText);
     
-    // Basic validation
     if (!parsedData.title || !parsedData.summary || !Array.isArray(parsedData.detailedAnalysis)) {
         throw new Error("Received malformed data from API. Failed to parse the analysis structure.");
     }
@@ -50,7 +45,6 @@ Your entire response MUST be a single, valid JSON object, without any markdown f
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     if (error instanceof SyntaxError) {
-        // This will catch JSON.parse errors
         throw new Error("Failed to parse the analysis from the API. The response was not valid JSON.");
     }
     throw new Error("Failed to get analysis from Gemini API.");
@@ -58,17 +52,20 @@ Your entire response MUST be a single, valid JSON object, without any markdown f
 };
 
 export const streamChatResponse = async (
-    modelName: string,
     history: ChatMessage[],
-    newMessage: string
+    newMessage:string
 ) => {
-    const chat: Chat = ai.chats.create({
-        model: modelName,
-        history: history.map(msg => ({
-            role: msg.role,
-            parts: [{ text: msg.content }]
-        }))
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+
+    const chatHistory = history.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }]
+    }));
+
+    const chat = model.startChat({
+        history: chatHistory,
     });
 
-    return chat.sendMessageStream({ message: newMessage });
+    const result = await chat.sendMessageStream(newMessage);
+    return result.stream;
 };
